@@ -1,0 +1,5 @@
+name = SAS Archive Custom Content Types
+description = Add custom Content Types and enables a clean database migration.
+backdrop = 1.x
+type = module
+configure = admin/config/import_content

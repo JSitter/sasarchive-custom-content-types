@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * hook_menu to create admin content importer
+ */
+function sasarchive_custom_content_types_api_menu() {
+    $pages = array();
+    return $pages;
+}
