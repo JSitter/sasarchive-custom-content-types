@@ -1,9 +1,44 @@
 <?php
 
 /**
- * hook_menu to create admin content importer
+ * Implements hook_menu to create admin content importer
  */
-function sasarchive_custom_content_types_api_menu() {
-    $pages = array();
-    return $pages;
+function sasarchive_custom_content_types_menu() {
+    $defined_pages = array();
+
+    // Create Page at /admin/config/import_content
+    $defined_pages['admin/config/administration/import_content'] = array(
+        'title' => 'Import Content from CSV',
+        'description' => 'Upload CSV to bulk load content into the database.',
+        'page callback' => 'backdrop_get_form',
+        // Pass name of function that builds form to backdrop_get_form function
+        'page arguments' => array('sasarchive_custom_content_types_bulk_import_form'),
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $defined_pages;
+}
+
+/**
+ *  Implements hook_form to build admin bulk import form.
+ */
+function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
+    $form['sasarchive_custom_content_types_csv_upload'] = array(
+        '#type' => 'file',
+        '#value' => t('Upload Bulk CSV Content'),
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t("Upload Bulk Content"),
+    );
+
+    return $form;
+}
+
+/**
+ * Implements hook_form_submit on bulk csv import
+ */
+function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_state) {
+    backdrop_set_message("CSV Form Submitted.");
 }
