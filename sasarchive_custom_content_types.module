@@ -24,7 +24,7 @@ function sasarchive_custom_content_types_menu() {
  *  Implements hook_form to build admin bulk import form.
  */
 function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
-    $form['favicon_upload'] = array(
+    $form['csv_upload'] = array(
         '#type' => 'file',
         '#value' => t('Upload Bulk CSV Content'),
     );
@@ -40,18 +40,10 @@ function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
  * Implements hook_form_submit to process attached csv
  */
 function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_state) {
-    // $csv_uri = '';
-    // $handle = fopen($csv_uri, 'r');
-    // $rows = fgetcsv($handle);
-
-    // $validators = array();
-    // $file = file_save_upload('file', $validators, 'public://');
-    // backdrop_set_message("uploaded");
-
     $validators = array('file_validate_extensions' => array('ico png gif jpg jpeg apng svg pdf'));
 
-    // Check for a new uploaded favicon.
-    $file = file_save_upload('favicon_upload', $validators);
+    // Check for a new uploaded csv.
+    $file = file_save_upload('csv_upload', $validators);
     
     if (isset($file)) {
       // File upload was attempted.
@@ -59,12 +51,12 @@ function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_s
         // Put the temporary file in form_values so we can save it on submit.
         file_move($file, 'public://');
         backdrop_set_message("File Uploaded");
-        $form_state['values']['favicon_upload'] = $file;
+        $form_state['values']['csv_upload'] = $file;
       }
       else {
-        backdrop_set_message("File not fouund");
+        backdrop_set_message("File not found", "error");
         // File upload failed.
-        form_set_error('favicon_upload', t('The favicon could not be uploaded.'));
+        form_set_error('csv_upload', t('The csv could not be uploaded.'));
       }
     }
 }
