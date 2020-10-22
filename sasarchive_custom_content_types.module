@@ -40,7 +40,7 @@ function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
  * Implements hook_form_submit to process attached csv
  */
 function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_state) {
-    $validators = array('file_validate_extensions' => array('ico png gif jpg jpeg apng svg pdf'));
+    $validators = array('file_validate_extensions' => array('csv'));
 
     // Check for a new uploaded csv.
     $file = file_save_upload('csv_upload', $validators);
@@ -49,12 +49,12 @@ function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_s
       // File upload was attempted.
       if ($file) {
         // Put the temporary file in form_values so we can save it on submit.
-        file_move($file, 'public://');
+        $dest = 'public://';
+        file_move($file, $dest);
         backdrop_set_message("File Uploaded");
         $form_state['values']['csv_upload'] = $file;
       }
       else {
-        backdrop_set_message("File not found", "error");
         // File upload failed.
         form_set_error('csv_upload', t('The csv could not be uploaded.'));
       }
