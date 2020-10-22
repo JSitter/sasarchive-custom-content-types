@@ -1,9 +1,62 @@
 <?php
 
 /**
- * hook_menu to create admin content importer
+ * Implements hook_menu to create admin content importer
  */
-function sasarchive_custom_content_types_api_menu() {
-    $pages = array();
-    return $pages;
+function sasarchive_custom_content_types_menu() {
+    $defined_pages = array();
+
+    // Create Page at /admin/config/administration/import_content
+    $defined_pages['admin/config/administration/import_content'] = array(
+        'title' => 'Import Content from CSV',
+        'description' => 'Upload CSV to bulk load content into the database.',
+        'page callback' => 'backdrop_get_form',
+        // Pass name of function that builds form to backdrop_get_form function
+        'page arguments' => array('sasarchive_custom_content_types_bulk_import_form'),
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $defined_pages;
+}
+
+/**
+ *  Implements hook_form to build admin bulk import form.
+ */
+function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
+    $form['csv_upload'] = array(
+        '#type' => 'file',
+        '#value' => t('Upload Bulk CSV Content'),
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t("Process Bulk Content"),
+    );
+
+    return $form;
+}
+
+/**
+ * Implements hook_form_submit to process attached csv
+ */
+function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_state) {
+    $validators = array('file_validate_extensions' => array('csv'));
+
+    // Check for a new uploaded csv.
+    $file = file_save_upload('csv_upload', $validators);
+    
+    if (isset($file)) {
+      // File upload was attempted.
+      if ($file) {
+        // Put the temporary file in form_values so we can save it on submit.
+        $dest = 'public://';
+        file_move($file, $dest);
+        backdrop_set_message("File Uploaded");
+        $form_state['values']['csv_upload'] = $file;
+      }
+      else {
+        // File upload failed.
+        form_set_error('csv_upload', t('The csv could not be uploaded.'));
+      }
+    }
 }
