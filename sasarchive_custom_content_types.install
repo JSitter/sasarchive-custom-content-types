@@ -1,0 +1,13 @@
+<?php
+
+/** Implmements hook_install()
+ * 
+ */
+
+ function sasarchive_custom_content_types_install() {
+     node_types_rebuild();
+     $types = node_type_get_types();
+     drupal_set_message("Types");
+     print($types);
+    node_add_body_field($types['testone']);
+ }
