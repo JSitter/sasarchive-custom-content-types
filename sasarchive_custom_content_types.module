@@ -1,12 +1,35 @@
 <?php
 
 /**
+ * Implements hook_node_info()
+ */
+function sasarchive_custom_content_types_node_info() {
+  return array(
+    'product' => array(
+      'name' => t('Test One'),
+      'base' => 'testone',
+      'description' => t('You can define new tests here'),
+      'has_title' => TRUE,
+      'title_label' => t('Test title')
+    )
+  );
+}
+
+/**
+ * Implements hook_form for content type
+ */
+function content_type_form($node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+
+/**
  * Implements hook_menu to create admin content importer
  */
 function sasarchive_custom_content_types_menu() {
     $defined_pages = array();
 
-    // Create Page at /admin/config/import_content
+    // Create Page at /admin/config/administration/import_content
     $defined_pages['admin/config/administration/import_content'] = array(
         'title' => 'Import Content from CSV',
         'description' => 'Upload CSV to bulk load content into the database.',
@@ -24,21 +47,49 @@ function sasarchive_custom_content_types_menu() {
  *  Implements hook_form to build admin bulk import form.
  */
 function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
-    $form['sasarchive_custom_content_types_csv_upload'] = array(
+    $form['favicon_upload'] = array(
         '#type' => 'file',
         '#value' => t('Upload Bulk CSV Content'),
     );
     $form['submit'] = array(
         '#type' => 'submit',
-        '#value' => t("Upload Bulk Content"),
+        '#value' => t("Process Bulk Content"),
     );
 
     return $form;
 }
 
+
 /**
- * Implements hook_form_submit on bulk csv import
+ * Implements hook_form_submit to process attached csv
  */
 function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_state) {
-    backdrop_set_message("CSV Form Submitted.");
+    // $csv_uri = '';
+    // $handle = fopen($csv_uri, 'r');
+    // $rows = fgetcsv($handle);
+
+    // $validators = array();
+    // $file = file_save_upload('file', $validators, 'public://');
+    // backdrop_set_message("uploaded");
+
+    $validators = array('file_validate_extensions' => array('ico png gif jpg jpeg apng svg pdf csv'));
+
+    // Check for a new uploaded favicon.
+    $file = file_save_upload('favicon_upload', $validators);
+    
+    if (isset($file)) {
+      // File upload was attempted.
+      if ($file) {
+        // Put the temporary file in form_values so we can save it on submit.
+        $form_state['values']['favicon_upload'] = $file;
+      }
+      else {
+        // File upload failed.
+        drupal_set_message("Erorr");
+        form_set_error('favicon_upload', t('The favicon could not be uploaded.'));
+      }
+    }
+  
+    backdrop_set_message("Uploaded file ".$file.'.');
 }
+
