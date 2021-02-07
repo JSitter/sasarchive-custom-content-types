@@ -72,7 +72,7 @@ function _custom_node_fields() {
     'content_year' => array(
       'field_name' => 'year',
       'cardinality' => 1,
-      'type' => 'integer',
+      'type' => 'text',
       'settings' => array(
         'max_length' => 4,
       ),
@@ -94,7 +94,7 @@ function _custom_node_installed_instances() {
       'display' => array(
         'summary' => array(
           'label' => 'hidden',
-          'type' => 'integer'
+          'type' => 'text'
         ),
       ),
     ),
@@ -170,6 +170,9 @@ function sasarchive_custom_content_types_field_formatter_info() {
   );
 }
 
+/**
+ * Implement hook_field_formatter_view
+ */
 
 
 /**
@@ -188,9 +191,7 @@ function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
     return $form;
 }
 
-/**
- * @todo Implement hook_field_formatter_view
- */
+
 
 /**
  * Define field instances for content type
