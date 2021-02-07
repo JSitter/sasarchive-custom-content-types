@@ -1,30 +1,185 @@
 <?php
 
 /**
- * Implements hook_menu to create admin content importer
+ * Implements hook_menu()
+ * Adds page to bulk insert content.
  */
 function sasarchive_custom_content_types_menu() {
-    $defined_pages = array();
+  $defined_pages = array();
 
-    // Create Page at /admin/config/administration/import_content
-    $defined_pages['admin/config/administration/import_content'] = array(
-        'title' => 'Import Content from CSV',
-        'description' => 'Upload CSV to bulk load content into the database.',
-        'page callback' => 'backdrop_get_form',
-        // Pass name of function that builds form to backdrop_get_form function
-        'page arguments' => array('sasarchive_custom_content_types_bulk_import_form'),
-        'access arguments' => array('access administration pages'),
-        'type' => MENU_NORMAL_ITEM,
-    );
+  // Create Page at /admin/config/administration/import_content
+  $defined_pages['admin/config/administration/import_content'] = array(
+      'title' => 'Import Content from CSV',
+      'description' => 'Upload CSV to bulk load content into the database.',
+      'page callback' => 'backdrop_get_form',
+      // Pass name of function that builds form to backdrop_get_form function
+      'page arguments' => array('sasarchive_custom_content_types_bulk_import_form'),
+      'access arguments' => array('access administration pages'),
+      'type' => MENU_NORMAL_ITEM,
+  );
 
-    return $defined_pages;
+  // Temporary Test Page -- Node View
+  $defined_pages['test/antonian_view'] = array(
+    'title' => 'Antonian list example',
+    'page callback' => 'antonian_view_all_page',
+    'access arguments' => array('access content'),
+  );
+
+  return $defined_pages;
 }
+
+/**
+ * Render List of all Antonians
+ */
+function antonian_view_all_page() {
+  $markup = '<p>Hello Antonians</p>';
+  return $markup;
+}
+
+/**
+ * Implements hook_node_type_insert()
+ */
+function sasarchive_custom_content_types_node_type_insert($content_type) {
+  //Add Antonian content type
+  if($content_type->type == 'antonian') {
+    //Add body field
+    $body_instance = node_add_body_field($content_type, t("Notes"));
+    $body_instance['display']['year'] = array(
+      'label' => 'hidden',
+      'type' => 'text_summary_or_trimmed',
+    );
+    // Save changes
+    field_update_instance($body_instance);
+    // Create all fields
+    foreach(_custom_node_fields() as $field) {
+      field_create_field($field);
+    }
+
+    // Create all instances of fields
+    foreach(_custom_node_installed_instances() as $instance) {
+      $instance['entity_type'] = 'node';
+      $instance['bundle'] = 'antonian';
+      field_create_instance($instance);
+    }
+  }
+}
+
+/**
+ * Define node fields
+ */
+function _custom_node_fields() {
+  return array(
+    'content_year' => array(
+      'field_name' => 'year',
+      'cardinality' => 1,
+      'type' => 'text',
+      'settings' => array(
+        'max_length' => 4,
+      ),
+    ),
+  );
+}
+
+/**
+ * Define field instances for content type
+ */
+function _custom_node_installed_instances() {
+  return array(
+    'content_year' => array(
+      'field_name' => 'year',
+      'label' => t('Year'),
+      'widget' => array(
+        'type' => 'text_textfield',
+      ),
+      'display' => array(
+        'summary' => array(
+          'label' => 'hidden',
+          'type' => 'text'
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_info()
+ */
+// function sasarchive_custom_content_types_node_info() {
+//   return array(
+//     'product' => array(
+//       'name' => t('Test One'),
+//       'base' => 'testone',
+//       'description' => t('You can define new tests here'),
+//       'has_title' => TRUE,
+//       'title_label' => t('Test title')
+//     )
+//   );
+// }
+
+/**
+ * Implements hook_form for antonian
+ */
+function antonian_form($node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+/**
+ * Callback that builds content and returns it to the browser
+ * callback will come from hook_menu()
+ */
+function antonian_page() {
+  $renderable_array = array();
+  $sql = 'SELECT nid FROM {node} n WHERE n.type = :type AND n.status = :status';
+  $result = db_query($sql,
+    array(
+      ':type' => 'antonian',
+      ':status' => 1,
+    )
+  );
+  $renderable_array['explanation'] = array(
+    '#markup' => t("Antonian nodes created will be displayed here"),
+  );
+  foreach($result as $row) {
+    $node = node_load($row->nid);
+    $renderable_array['node_list'][] = node_view($node, 'summary');
+  }
+  return $renderable_array;
+}
+
+/**
+ * Implements hook_entity_info_alter()
+ * Modify default node entity by adding new view mode to be used in
+ * node_view() and nod_build_content().
+ */
+function sasarchive_custom_content_types_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['summary'] = array(
+    'label' => t('Example list'),
+    'custom settings' => TRUE,
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function sasarchive_custom_content_types_field_formatter_info() {
+  return array(
+    'year' => array(
+      'label' => t('Content Year'),
+      'field types' => array('text'),
+    ),
+  );
+}
+
+/**
+ * Implement hook_field_formatter_view
+ */
+
 
 /**
  *  Implements hook_form to build admin bulk import form.
  */
 function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
-    $form['csv_upload'] = array(
+    $form['favicon_upload'] = array(
         '#type' => 'file',
         '#value' => t('Upload Bulk CSV Content'),
     );
@@ -36,27 +191,43 @@ function sasarchive_custom_content_types_bulk_import_form($form, &$form_state) {
     return $form;
 }
 
+
+
+/**
+ * Define field instances for content type
+ * 
+ */
+
 /**
  * Implements hook_form_submit to process attached csv
  */
 function sasarchive_custom_content_types_bulk_import_form_submit($form, &$form_state) {
-    $validators = array('file_validate_extensions' => array('csv'));
+    // $csv_uri = '';
+    // $handle = fopen($csv_uri, 'r');
+    // $rows = fgetcsv($handle);
 
-    // Check for a new uploaded csv.
-    $file = file_save_upload('csv_upload', $validators);
+    // $validators = array();
+    // $file = file_save_upload('file', $validators, 'public://');
+    // backdrop_set_message("uploaded");
+
+    $validators = array('file_validate_extensions' => array('ico png gif jpg jpeg apng svg pdf csv'));
+
+    // Check for a new uploaded favicon.
+    $file = file_save_upload('favicon_upload', $validators);
     
     if (isset($file)) {
       // File upload was attempted.
       if ($file) {
         // Put the temporary file in form_values so we can save it on submit.
-        $dest = 'public://';
-        file_move($file, $dest);
-        backdrop_set_message("File Uploaded");
-        $form_state['values']['csv_upload'] = $file;
+        $form_state['values']['favicon_upload'] = $file;
       }
       else {
         // File upload failed.
-        form_set_error('csv_upload', t('The csv could not be uploaded.'));
+        drupal_set_message("Erorr");
+        form_set_error('favicon_upload', t('The favicon could not be uploaded.'));
       }
     }
+  
+    backdrop_set_message("Uploaded file ".$file.'.');
 }
+
