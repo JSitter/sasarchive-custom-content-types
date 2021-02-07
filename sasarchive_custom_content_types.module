@@ -20,9 +20,9 @@ function sasarchive_custom_content_types_menu() {
 
   // Temporary Test Page -- Node View
   $defined_pages['test/antonian_view'] = array(
-    'page_callback' => 'antonian_view_all_page',
     'title' => 'Antonian list example',
-    'access callback' => TRUE,
+    'page callback' => 'antonian_view_all_page',
+    'access arguments' => array('access content'),
   );
 
   return $defined_pages;
